@@ -552,6 +552,20 @@ if (shareBtn) {
       }
     } catch (err) {
       console.error('Copy failed:', err);
+      // Show error toast if clipboard fails
+      if (shareToast) {
+        shareToast.textContent = '❌ Copy failed';
+        shareToast.style.background = 'rgba(244, 67, 54, 0.95)';
+        shareToast.classList.add("show");
+        setTimeout(() => {
+          shareToast.classList.remove("show");
+          // Reset toast content and color
+          setTimeout(() => {
+            shareToast.textContent = '✅ Link copied!';
+            shareToast.style.background = 'rgba(76, 175, 80, 0.95)';
+          }, 300);
+        }, 2000);
+      }
     }
   });
 }
