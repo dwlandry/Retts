@@ -358,7 +358,49 @@ function updateProgress() {
 function toggleCheck(idx) {
   checked[idx] = !checked[idx];
   updateProgress();
-  render();
+  
+  // Update only the specific card/chip instead of full re-render
+  const item = SCHEDULE[idx];
+  
+  if (item.type === "solo") {
+    // Update solo chip
+    const chip = document.querySelector(`.solo-chip[data-sidx="${idx}"]`);
+    if (chip) {
+      if (checked[idx]) {
+        chip.classList.add("checked-chip");
+      } else {
+        chip.classList.remove("checked-chip");
+      }
+    }
+    
+    // Update solo group counter
+    const soloSub = document.querySelector(".solo-sub");
+    if (soloSub) {
+      const visible = SCHEDULE.map((item, i) => ({ ...item, idx: i })).filter(item => {
+        if (currentFilter === "all") return true;
+        if (currentFilter === "team") return item.type === "team";
+        if (currentFilter === "solos") return item.type === "solo";
+        if (currentFilter === "important") return ["break","info","awards"].includes(item.type);
+        return true;
+      });
+      const solos = visible.filter(i => i.type === "solo");
+      const soloChecked = solos.filter(s => checked[s.idx]).length;
+      soloSub.textContent = `12:45 – 1:37 PM · Auditorium · ${solos.length} dancers · ${soloChecked} done`;
+    }
+  } else {
+    // Update regular card
+    const card = document.querySelector(`.card[data-idx="${idx}"]`);
+    if (card) {
+      const checkbox = card.querySelector(".checkbox");
+      if (checked[idx]) {
+        card.classList.add("checked");
+        if (checkbox) checkbox.textContent = "✓";
+      } else {
+        card.classList.remove("checked");
+        if (checkbox) checkbox.textContent = "";
+      }
+    }
+  }
 }
 
 // ── Filters ──
@@ -450,6 +492,7 @@ function render() {
     const isChecked = !!checked[item.idx];
     const card = document.createElement("div");
     card.className = "card" + (isChecked ? " checked" : "");
+    card.dataset.idx = item.idx;
     card.style.setProperty("--accent", c.brd);
     card.style.setProperty("--d", (.35 + cardIdx * .06) + "s");
     cardIdx++;
