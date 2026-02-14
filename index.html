@@ -142,6 +142,11 @@ opacity:0; animation:slideIn .5s ease var(--d) forwards;
   0%, 100% { box-shadow:0 0 20px rgba(114,155,209,.4), 0 8px 30px rgba(0,0,0,.3); }
   50% { box-shadow:0 0 30px rgba(114,155,209,.6), 0 8px 30px rgba(0,0,0,.3); }
 }
+@media (prefers-reduced-motion: reduce) {
+  .card.up-next {
+    animation: slideIn .5s ease var(--d) forwards;
+  }
+}
 .up-next-badge {
   display:inline-block;
   padding:4px 10px;
@@ -380,11 +385,9 @@ const typeLabel = t => ({ team:"TEAM", solo:"SOLO", break:"BREAK", info:"INFO", 
 // ── Convert 12-hour time to 24-hour format ──
 function convertTo24Hour(hours, period) {
   hours = parseInt(hours);
-  if (period.toUpperCase() === 'PM' && hours !== 12) {
-    return hours + 12;
-  } else if (period.toUpperCase() === 'AM' && hours === 12) {
-    return 0;
-  }
+  const p = period.toUpperCase();
+  if (p === 'PM' && hours < 12) return hours + 12;
+  if (p === 'AM' && hours === 12) return 0;
   return hours;
 }
 
@@ -428,17 +431,60 @@ function findUpNextEvent() {
   
   if (upcomingEvents.length > 0) {
     // Return the next upcoming event
-    return upcomingEvents[0];
+    return { ...upcomingEvents[0], isNow: false };
+  }
+  
+  // Check for exact-time events that are currently happening (e.g., solos)
+  // Iterate backwards through events to find the most recent one
+  for (let i = eventsWithTime.length - 1; i >= 0; i--) {
+    const event = eventsWithTime[i];
+    
+    // Skip future events
+    if (event.parsedTime > now) continue;
+    
+    const timeStr = event.time;
+    
+    // Check if it's an exact time (not a range)
+    const isExactTime = !timeStr.includes('–') && !timeStr.includes('-');
+    
+    if (isExactTime) {
+      // For exact times, treat as ongoing for 4 minutes or until the next event starts
+      const eventEndTime = new Date(event.parsedTime.getTime() + 4 * 60 * 1000); // 4 minutes later
+      
+      // Check if there's a next event (look ahead in the array)
+      const nextEvent = i + 1 < eventsWithTime.length ? eventsWithTime[i + 1] : null;
+      const nextEventTime = nextEvent ? nextEvent.parsedTime : null;
+      
+      // If next event starts before 4 minutes, use that as the end time
+      const actualEndTime = nextEventTime && nextEventTime < eventEndTime ? nextEventTime : eventEndTime;
+      
+      if (now < actualEndTime) {
+        return { ...event, isNow: true };
+      }
+    }
   }
   
   // Check if we're during an event (for ranges)
   const ongoingEvents = eventsWithTime.filter(e => {
     const timeStr = e.time;
-    const rangeMatch = timeStr.match(/^(\d{1,2}):(\d{2})–(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    const rangeMatch = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)\s*[–-]\s*(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/i);
     if (rangeMatch) {
-      const [, startHoursStr, startMinutes, endHoursStr, endMinutes, period] = rangeMatch;
-      const startH = convertTo24Hour(startHoursStr, period);
-      const endH = convertTo24Hour(endHoursStr, period);
+      const [, startHoursStr, startMinutes, startPeriod, endHoursStr, endMinutes, endPeriod] = rangeMatch;
+      
+      // Use end period if provided, otherwise use start period
+      let effectiveEndPeriod = endPeriod || startPeriod;
+      
+      // If no explicit end period and end hour is less than start hour, flip the period
+      if (!endPeriod) {
+        const startHourNum = parseInt(startHoursStr);
+        const endHourNum = parseInt(endHoursStr);
+        if (endHourNum < startHourNum) {
+          effectiveEndPeriod = startPeriod.toUpperCase() === 'AM' ? 'PM' : 'AM';
+        }
+      }
+      
+      const startH = convertTo24Hour(startHoursStr, startPeriod);
+      const endH = convertTo24Hour(endHoursStr, effectiveEndPeriod);
       
       const startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, parseInt(startMinutes), 0);
       const endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, parseInt(endMinutes), 0);
@@ -449,7 +495,7 @@ function findUpNextEvent() {
   });
   
   if (ongoingEvents.length > 0) {
-    return ongoingEvents[0];
+    return { ...ongoingEvents[0], isNow: true };
   }
   
   // All events are in the past - return null
@@ -635,6 +681,7 @@ function render() {
     const c = typeColor(item.type);
     const isChecked = !!checked[item.idx];
     const isUpNext = item.idx === upNextIdx;
+    const isNow = upNextEvent && upNextEvent.isNow && item.idx === upNextIdx;
     const card = document.createElement("div");
     card.className = "card" + (isChecked ? " checked" : "") + (isUpNext ? " up-next" : "");
     card.dataset.idx = item.idx;
@@ -642,11 +689,18 @@ function render() {
     card.style.setProperty("--d", (.35 + cardIdx * .06) + "s");
     cardIdx++;
     
-    // Build time until text
+    // Build time until text and badge
     let timeUntilHTML = "";
-    if (isUpNext && upNextEvent && upNextEvent.parsedTime) {
-      const timeUntilText = formatTimeUntil(upNextEvent.parsedTime);
-      timeUntilHTML = `<span class="time-until">${timeUntilText}</span>`;
+    let badgeHTML = "";
+    if (isUpNext) {
+      if (isNow) {
+        badgeHTML = '<span class="up-next-badge">🔴 NOW</span>';
+        timeUntilHTML = '<span class="time-until">happening now</span>';
+      } else if (upNextEvent && upNextEvent.parsedTime) {
+        badgeHTML = '<span class="up-next-badge">⏳ UP NEXT</span>';
+        const timeUntilText = formatTimeUntil(upNextEvent.parsedTime);
+        timeUntilHTML = `<span class="time-until">${timeUntilText}</span>`;
+      }
     }
 
     card.innerHTML = `
@@ -656,7 +710,7 @@ function render() {
           <div class="card-top">
             <span class="dance-name">${item.dance}</span>
             <span class="type-tag" style="background:${c.bg};color:${c.acc};border:1px solid ${c.brd}40">${typeLabel(item.type)}</span>
-            ${isUpNext ? '<span class="up-next-badge">⏳ UP NEXT</span>' : ''}
+            ${badgeHTML}
             ${timeUntilHTML}
           </div>
           <div class="card-meta">
@@ -678,10 +732,77 @@ function render() {
 updateProgress();
 render();
 
-// ── Auto-update UP NEXT every 30 seconds ──
-setInterval(() => {
-  render();
-}, 30000);
+// ── Auto-update UP NEXT with targeted updates and Page Visibility API ──
+let updateIntervalId = null;
+let lastUpNextIdx = -1;
+
+function updateUpNext() {
+  const upNextEvent = findUpNextEvent();
+  const newUpNextIdx = upNextEvent ? upNextEvent.idx : -1;
+  
+  // If all events are past, stop the interval and do a final render
+  if (newUpNextIdx === -1) {
+    if (updateIntervalId !== null) {
+      clearInterval(updateIntervalId);
+      updateIntervalId = null;
+    }
+    lastUpNextIdx = -1;
+    render();
+    return;
+  }
+  
+  // If the up-next event has changed, do a full render
+  if (newUpNextIdx !== lastUpNextIdx) {
+    lastUpNextIdx = newUpNextIdx;
+    render();
+  } else {
+    // Otherwise, just update the time-until text on the current UP NEXT card
+    const card = document.querySelector(`.card.up-next`);
+    if (card && upNextEvent && upNextEvent.parsedTime) {
+      const timeUntilEl = card.querySelector('.time-until');
+      if (timeUntilEl && !upNextEvent.isNow) {
+        const timeUntilText = formatTimeUntil(upNextEvent.parsedTime);
+        timeUntilEl.textContent = timeUntilText;
+      }
+    }
+  }
+}
+
+function startUpdateInterval() {
+  if (updateIntervalId === null) {
+    // Align lastUpNextIdx with the current up-next event to avoid an extra full render
+    const initialUpNextEvent = findUpNextEvent();
+    lastUpNextIdx = initialUpNextEvent ? initialUpNextEvent.idx : -1;
+
+    // Run immediately on start (will now usually do a lightweight update only)
+    updateUpNext();
+
+    // Then run every 30 seconds while there are upcoming events
+    if (lastUpNextIdx !== -1) {
+      updateIntervalId = setInterval(updateUpNext, 30000);
+    }
+  }
+}
+
+function stopUpdateInterval() {
+  if (updateIntervalId !== null) {
+    clearInterval(updateIntervalId);
+    updateIntervalId = null;
+  }
+}
+
+// Use Page Visibility API to pause/resume updates
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopUpdateInterval();
+  } else {
+    startUpdateInterval();
+  }
+});
+
+// Start the update interval
+startUpdateInterval();
+
 </script>
 
 </body>
