@@ -61,8 +61,54 @@ animation-delay: var(--delay);
 /* ── Top stripe ── */
 .stripe { height:4px; background:linear-gradient(90deg,#c8102e,#729bd1,#c8102e,#729bd1,#c8102e); position:relative; z-index:1; }
 
+/* ── Sticky UP NEXT Banner ── */
+.sticky-banner {
+  position: fixed;
+  top: 4px;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(10, 22, 40, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(114, 155, 209, 0.3);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #fff;
+  text-align: center;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: slideDown 0.5s ease 0.5s forwards;
+}
+@keyframes slideDown {
+  to { opacity: 1; transform: translateY(0); }
+}
+.sticky-banner .banner-emoji {
+  font-size: 16px;
+  margin-right: 4px;
+}
+.sticky-banner .banner-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  color: #729bd1;
+  font-weight: 600;
+}
+.sticky-banner .banner-time,
+.sticky-banner .banner-location {
+  color: #8bb4e0;
+  font-size: 12px;
+}
+.sticky-banner .banner-countdown {
+  color: #fff;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
 /* ── Container ── */
-.container { max-width:560px; margin:0 auto; padding:0 16px; position:relative; z-index:1; }
+.container { max-width:560px; margin:0 auto; padding:0 16px; padding-top:60px; position:relative; z-index:1; }
 
 /* ── Hero ── */
 .hero { text-align:center; padding:40px 0 20px; opacity:0; transform:translateY(24px); animation:slideUp .8s ease .15s forwards; }
@@ -96,8 +142,53 @@ margin-top:20px; padding:14px 20px;
 background:linear-gradient(135deg,rgba(114,155,209,.1),rgba(200,16,46,.08));
 border-radius:14px; border:1px solid rgba(114,155,209,.15);
 }
-.quote-box p { font-family:‘Dancing Script’,cursive; font-size:21px; color:#c8d8ef; }
+.quote-box p { font-family:‘Dancing Script’,cursive; transition:opacity .5s ease; font-size:21px; color:#c8d8ef; }
 
+.quote-box p.fading { opacity: 0; }
+
+/* ── Share Button ── */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: rgba(114, 155, 209, 0.08);
+  border: 1px solid rgba(114, 155, 209, 0.3);
+  border-radius: 20px;
+  color: #8bb4e0;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.share-btn:hover {
+  background: rgba(114, 155, 209, 0.15);
+  border-color: #729bd1;
+  transform: translateY(-1px);
+}
+.share-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(76, 175, 80, 0.95);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 101;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.share-toast.show {
+  opacity: 1;
+}
 /* ── Progress ── */
 .progress-wrap { margin:8px 0 20px; opacity:0; animation:slideUp .7s ease .3s forwards; }
 .progress-labels { display:flex; justify-content:space-between; font-size:12px; color:#8bb4e0; margin-bottom:4px; }
@@ -252,6 +343,12 @@ border-radius:14px; padding:14px 18px; margin-top:10px; font-size:12px; color:#F
 
 <div class="stripe"></div>
 
+<!-- ── Sticky UP NEXT Banner ── -->
+<div class="sticky-banner" id="sticky-banner">
+  <span class="banner-emoji">⏳</span>
+  <span class="banner-name">Loading...</span>
+</div>
+
 <div class="container">
 
   <!-- ═══════ HERO ═══════ -->
@@ -267,9 +364,15 @@ border-radius:14px; padding:14px 18px; margin-top:10px; font-size:12px; color:#F
       <div class="line"></div>
     </div>
     <div class="quote-box">
-      <p>"Comp Ready — Good Luck Rettes!" 🌟</p>
+      <p id="quote-text">"Comp Ready — Good Luck Rettes!" 🌟</p>
     </div>
+    <button class="share-btn" id="share-btn">
+      📤 <span>Share Schedule</span>
+    </button>
   </div>
+
+  <!-- Toast notification for share feedback -->
+  <div class="share-toast" id="share-toast">✅ Link copied!</div>
 
   <!-- ═══════ PROGRESS ═══════ -->
 
@@ -370,6 +473,151 @@ const floatEl = document.getElementById("floaters");
   f.style.setProperty("--delay", (Math.random()*5)+"s");
   floatEl.appendChild(f);
 });
+
+// ── Motivational Quotes ──
+const QUOTES = [
+  "\"Comp Ready — Good Luck Rettes!\" 🌟",
+  "\"Leave it all on the floor!\" 💃",
+  "\"You've trained for this moment!\" ⭐",
+  "\"Dance like nobody's watching!\" 🎶",
+  "\"Trust your training, own that stage!\" 🔥",
+  "\"Shoulders back, chin up, let's GO!\" 💪",
+  "\"This is YOUR moment — make it count!\" ✨",
+  "\"Together we shine brighter!\" 💫"
+];
+
+const QUOTE_ROTATION_INTERVAL_MS = 18000; // 18 seconds
+const FADE_DURATION_MS = 500; // Must match CSS transition duration
+
+let currentQuoteIndex = Math.floor(Math.random() * QUOTES.length);
+const quoteText = document.getElementById("quote-text");
+
+// Set initial random quote
+if (quoteText) {
+  quoteText.textContent = QUOTES[currentQuoteIndex];
+}
+
+// Rotate quotes every 18 seconds
+function rotateQuote() {
+  if (!quoteText) return;
+
+  // Fade out
+  quoteText.classList.add("fading");
+
+  setTimeout(() => {
+    // Change quote
+    currentQuoteIndex = (currentQuoteIndex + 1) % QUOTES.length;
+    quoteText.textContent = QUOTES[currentQuoteIndex];
+
+    // Fade in
+    quoteText.classList.remove("fading");
+  }, FADE_DURATION_MS);
+}
+
+// Start/pause quote rotation based on page visibility to save battery
+let quoteRotationIntervalId = null;
+
+function startQuoteRotation() {
+  if (quoteRotationIntervalId === null && !document.hidden) {
+    quoteRotationIntervalId = setInterval(rotateQuote, QUOTE_ROTATION_INTERVAL_MS);
+  }
+}
+
+function stopQuoteRotation() {
+  if (quoteRotationIntervalId !== null) {
+    clearInterval(quoteRotationIntervalId);
+    quoteRotationIntervalId = null;
+  }
+}
+
+// Initialize quote rotation only when page is visible
+if (!document.hidden) {
+  startQuoteRotation();
+}
+
+// Pause/resume quote rotation when tab visibility changes
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopQuoteRotation();
+  } else {
+    startQuoteRotation();
+  }
+});
+// ── Share Button ──
+const shareBtn = document.getElementById("share-btn");
+const shareToast = document.getElementById("share-toast");
+
+if (shareBtn) {
+  shareBtn.addEventListener("click", async () => {
+    const url = window.location.href;
+    
+    // Prevent re-entrancy if a share is already in progress
+    if (shareBtn.disabled) return;
+
+    const url = window.location.href;
+    const originalText = shareBtn.textContent;
+
+    // Disable button and show loading state
+    shareBtn.disabled = true;
+    shareBtn.textContent = "Sharing...";
+
+    try {
+      let shared = false;
+      
+      // Try native share API first (mobile)
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Raiderettes Competition Schedule',
+            text: 'Check out the Raiderettes competition day schedule!',
+            url: url
+          });
+          shared = true;
+        } catch (err) {
+          // User cancelled or share failed, fall back to clipboard
+          if (err.name !== 'AbortError') {
+            console.error('Share failed:', err);
+          }
+        }
+      }
+      
+      // Fallback to clipboard if native share didn't succeed
+      if (!shared) {
+        try {
+          await navigator.clipboard.writeText(url);
+          
+          // Show toast
+          if (shareToast) {
+            shareToast.classList.add("show");
+            setTimeout(() => {
+              shareToast.classList.remove("show");
+            }, 2000);
+          }
+        } catch (err) {
+          console.error('Copy failed:', err);
+          // Show error toast if clipboard fails
+          if (shareToast) {
+            shareToast.textContent = '❌ Copy failed';
+            shareToast.style.background = 'rgba(244, 67, 54, 0.95)';
+            shareToast.classList.add("show");
+            setTimeout(() => {
+              shareToast.classList.remove("show");
+              // Reset toast content and color
+              setTimeout(() => {
+                shareToast.textContent = '✅ Link copied!';
+                shareToast.style.background = 'rgba(76, 175, 80, 0.95)';
+              }, 300);
+            }, 2000);
+          }
+        }
+      }
+    } finally {
+      // Re-enable button and restore original text
+      shareBtn.disabled = false;
+      shareBtn.textContent = originalText;
+    }
+  });
+}
 
 // ── Helpers ──
 const typeColor = t => ({
@@ -732,6 +980,52 @@ function render() {
 updateProgress();
 render();
 
+// ── Update Sticky Banner ──
+function updateStickyBanner() {
+  const banner = document.getElementById("sticky-banner");
+  if (!banner) return;
+  
+  const upNextEvent = findUpNextEvent();
+  
+  if (!upNextEvent) {
+    // All events are over
+    banner.innerHTML = '<span class="banner-emoji">🎉</span> <span class="banner-name">All done! Great job Rettes!</span>';
+    return;
+  }
+  
+  const item = SCHEDULE[upNextEvent.idx];
+  const isNow = upNextEvent.isNow;
+  
+  let emoji, prefix, timeDisplay, countdownText;
+  
+  if (isNow) {
+    emoji = '🔴';
+    prefix = 'NOW';
+    timeDisplay = item.time;
+    countdownText = '';
+  } else {
+    emoji = '⏳';
+    prefix = 'UP NEXT';
+    timeDisplay = item.time;
+    if (upNextEvent.parsedTime) {
+      const timeUntil = formatTimeUntil(upNextEvent.parsedTime);
+      countdownText = ` · <span class="banner-countdown">${timeUntil}</span>`;
+    } else {
+      countdownText = '';
+    }
+  }
+  
+  banner.innerHTML = `
+    <span class="banner-emoji">${emoji}</span>
+    <span class="banner-name">${prefix}: ${item.dance}</span>
+    <span class="banner-time"> · ${timeDisplay}</span>
+    <span class="banner-location"> · ${item.loc}</span>${countdownText}
+  `;
+}
+
+// Call initially
+updateStickyBanner();
+
 // ── Auto-update UP NEXT with targeted updates and Page Visibility API ──
 let updateIntervalId = null;
 let lastUpNextIdx = -1;
@@ -739,6 +1033,9 @@ let lastUpNextIdx = -1;
 function updateUpNext() {
   const upNextEvent = findUpNextEvent();
   const newUpNextIdx = upNextEvent ? upNextEvent.idx : -1;
+  
+  // Update sticky banner
+  updateStickyBanner();
   
   // If all events are past, stop the interval and do a final render
   if (newUpNextIdx === -1) {
