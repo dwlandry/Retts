@@ -500,23 +500,49 @@ if (quoteText) {
 // Rotate quotes every 18 seconds
 function rotateQuote() {
   if (!quoteText) return;
-  
+
   // Fade out
   quoteText.classList.add("fading");
-  
+
   setTimeout(() => {
     // Change quote
     currentQuoteIndex = (currentQuoteIndex + 1) % QUOTES.length;
     quoteText.textContent = QUOTES[currentQuoteIndex];
-    
+
     // Fade in
     quoteText.classList.remove("fading");
   }, FADE_DURATION_MS);
 }
 
-// Start quote rotation
-setInterval(rotateQuote, QUOTE_ROTATION_INTERVAL_MS);
+// Start/pause quote rotation based on page visibility to save battery
+let quoteRotationIntervalId = null;
 
+function startQuoteRotation() {
+  if (quoteRotationIntervalId === null && !document.hidden) {
+    quoteRotationIntervalId = setInterval(rotateQuote, QUOTE_ROTATION_INTERVAL_MS);
+  }
+}
+
+function stopQuoteRotation() {
+  if (quoteRotationIntervalId !== null) {
+    clearInterval(quoteRotationIntervalId);
+    quoteRotationIntervalId = null;
+  }
+}
+
+// Initialize quote rotation only when page is visible
+if (!document.hidden) {
+  startQuoteRotation();
+}
+
+// Pause/resume quote rotation when tab visibility changes
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopQuoteRotation();
+  } else {
+    startQuoteRotation();
+  }
+});
 // ── Share Button ──
 const shareBtn = document.getElementById("share-btn");
 const shareToast = document.getElementById("share-toast");
