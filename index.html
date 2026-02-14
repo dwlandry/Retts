@@ -435,9 +435,13 @@ function findUpNextEvent() {
   }
   
   // Check for exact-time events that are currently happening (e.g., solos)
-  const pastEvents = eventsWithTime.filter(e => e.parsedTime <= now);
-  for (let i = pastEvents.length - 1; i >= 0; i--) {
-    const event = pastEvents[i];
+  // Iterate backwards through events to find the most recent one
+  for (let i = eventsWithTime.length - 1; i >= 0; i--) {
+    const event = eventsWithTime[i];
+    
+    // Skip future events
+    if (event.parsedTime > now) continue;
+    
     const timeStr = event.time;
     
     // Check if it's an exact time (not a range)
@@ -447,9 +451,9 @@ function findUpNextEvent() {
       // For exact times, treat as ongoing for 4 minutes or until the next event starts
       const eventEndTime = new Date(event.parsedTime.getTime() + 4 * 60 * 1000); // 4 minutes later
       
-      // Check if there's a next event
-      const nextEventIdx = eventsWithTime.findIndex(e => e.parsedTime > event.parsedTime);
-      const nextEventTime = nextEventIdx >= 0 ? eventsWithTime[nextEventIdx].parsedTime : null;
+      // Check if there's a next event (look ahead in the array)
+      const nextEvent = i + 1 < eventsWithTime.length ? eventsWithTime[i + 1] : null;
+      const nextEventTime = nextEvent ? nextEvent.parsedTime : null;
       
       // If next event starts before 4 minutes, use that as the end time
       const actualEndTime = nextEventTime && nextEventTime < eventEndTime ? nextEventTime : eventEndTime;
@@ -458,6 +462,9 @@ function findUpNextEvent() {
         return { ...event, isNow: true };
       }
     }
+    
+    // Only check a few recent events for ongoing status
+    if (i < eventsWithTime.length - 5) break;
   }
   
   // Check if we're during an event (for ranges)
