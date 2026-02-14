@@ -409,6 +409,14 @@ document.querySelectorAll(".fbtn").forEach(btn => {
     document.querySelectorAll(".fbtn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     currentFilter = btn.dataset.filter;
+    
+    // Auto-expand solos when filtering to solos, collapse when switching away
+    if (currentFilter === "solos") {
+      solosOpen = true;
+    } else {
+      solosOpen = false;
+    }
+    
     render();
   });
 });
