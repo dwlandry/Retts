@@ -1581,15 +1581,13 @@ const mapsSection = document.getElementById("maps-section");
 
 if (mapsFloatBtn && mapsSection) {
   const floatBtnObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        // Maps section is visible, hide the button
-        mapsFloatBtn.classList.add("hidden");
-      } else {
-        // Maps section is not visible, show the button
-        mapsFloatBtn.classList.remove("hidden");
-      }
-    });
+    if (entries[0].isIntersecting) {
+      // Maps section is visible, hide the button
+      mapsFloatBtn.classList.add("hidden");
+    } else {
+      // Maps section is not visible, show the button
+      mapsFloatBtn.classList.remove("hidden");
+    }
   }, {
     // Trigger when any part of the maps section is visible
     threshold: 0
