@@ -551,52 +551,70 @@ if (shareBtn) {
   shareBtn.addEventListener("click", async () => {
     const url = window.location.href;
     
-    // Try native share API first (mobile)
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Raiderettes Competition Schedule',
-          text: 'Check out the Raiderettes competition day schedule!',
-          url: url
-        });
-        return;
-      } catch (err) {
-        // If user cancelled (AbortError), respect cancellation and do not fall back to clipboard
-        if (err.name === 'AbortError') {
-          return;
-        }
-        // For other errors, log and fall back to clipboard
-        console.error('Share failed:', err);
-      }
-    }
-    
-    // Fallback to clipboard
+    // Prevent re-entrancy if a share is already in progress
+    if (shareBtn.disabled) return;
+
+    const url = window.location.href;
+    const originalText = shareBtn.textContent;
+
+    // Disable button and show loading state
+    shareBtn.disabled = true;
+    shareBtn.textContent = "Sharing...";
+
     try {
-      await navigator.clipboard.writeText(url);
+      let shared = false;
       
-      // Show toast
-      if (shareToast) {
-        shareToast.classList.add("show");
-        setTimeout(() => {
-          shareToast.classList.remove("show");
-        }, 2000);
+      // Try native share API first (mobile)
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Raiderettes Competition Schedule',
+            text: 'Check out the Raiderettes competition day schedule!',
+            url: url
+          });
+          shared = true;
+        } catch (err) {
+          // User cancelled or share failed, fall back to clipboard
+          if (err.name !== 'AbortError') {
+            console.error('Share failed:', err);
+          }
+        }
       }
-    } catch (err) {
-      console.error('Copy failed:', err);
-      // Show error toast if clipboard fails
-      if (shareToast) {
-        shareToast.textContent = '❌ Copy failed';
-        shareToast.style.background = 'rgba(244, 67, 54, 0.95)';
-        shareToast.classList.add("show");
-        setTimeout(() => {
-          shareToast.classList.remove("show");
-          // Reset toast content and color
-          setTimeout(() => {
-            shareToast.textContent = '✅ Link copied!';
-            shareToast.style.background = 'rgba(76, 175, 80, 0.95)';
-          }, 300);
-        }, 2000);
+      
+      // Fallback to clipboard if native share didn't succeed
+      if (!shared) {
+        try {
+          await navigator.clipboard.writeText(url);
+          
+          // Show toast
+          if (shareToast) {
+            shareToast.classList.add("show");
+            setTimeout(() => {
+              shareToast.classList.remove("show");
+            }, 2000);
+          }
+        } catch (err) {
+          console.error('Copy failed:', err);
+          // Show error toast if clipboard fails
+          if (shareToast) {
+            shareToast.textContent = '❌ Copy failed';
+            shareToast.style.background = 'rgba(244, 67, 54, 0.95)';
+            shareToast.classList.add("show");
+            setTimeout(() => {
+              shareToast.classList.remove("show");
+              // Reset toast content and color
+              setTimeout(() => {
+                shareToast.textContent = '✅ Link copied!';
+                shareToast.style.background = 'rgba(76, 175, 80, 0.95)';
+              }, 300);
+            }, 2000);
+          }
+        }
       }
+    } finally {
+      // Re-enable button and restore original text
+      shareBtn.disabled = false;
+      shareBtn.textContent = originalText;
     }
   });
 }
