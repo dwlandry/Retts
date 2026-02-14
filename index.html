@@ -408,6 +408,8 @@ border-radius:14px; padding:14px 18px; margin-top:10px; font-size:12px; color:#F
 
 <script>
 // ── Data ──
+const COMP_DATE = new Date(2026, 1, 14); // February 14, 2026 (months are 0-indexed)
+
 const SCHEDULE = [
   { time:"8:39 AM",  loc:"Auxiliary Gym",            dance:"Officer Contemporary", type:"team",   icon:"💃" },
   { time:"9:40 AM",  loc:"Main Gym",                 dance:"Beetlejuice Novelty",  type:"team",   icon:"🪲" },
@@ -655,8 +657,7 @@ function parseScheduleTime(timeStr) {
   const [, hoursStr, minutes, period] = timeMatch;
   const hours = convertTo24Hour(hoursStr, period);
   
-  const now = new Date();
-  const eventTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, parseInt(minutes), 0);
+  const eventTime = new Date(COMP_DATE.getFullYear(), COMP_DATE.getMonth(), COMP_DATE.getDate(), hours, parseInt(minutes), 0);
   
   return eventTime;
 }
@@ -732,8 +733,8 @@ function findUpNextEvent() {
       const startH = convertTo24Hour(startHoursStr, startPeriod);
       const endH = convertTo24Hour(endHoursStr, effectiveEndPeriod);
       
-      const startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, parseInt(startMinutes), 0);
-      const endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, parseInt(endMinutes), 0);
+      const startTime = new Date(COMP_DATE.getFullYear(), COMP_DATE.getMonth(), COMP_DATE.getDate(), startH, parseInt(startMinutes), 0);
+      const endTime = new Date(COMP_DATE.getFullYear(), COMP_DATE.getMonth(), COMP_DATE.getDate(), endH, parseInt(endMinutes), 0);
       
       return now >= startTime && now < endTime;
     }
