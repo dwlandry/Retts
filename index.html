@@ -740,12 +740,14 @@ function updateUpNext() {
   const upNextEvent = findUpNextEvent();
   const newUpNextIdx = upNextEvent ? upNextEvent.idx : -1;
   
-  // If all events are past, stop the interval
+  // If all events are past, stop the interval and do a final render
   if (newUpNextIdx === -1) {
     if (updateIntervalId !== null) {
       clearInterval(updateIntervalId);
       updateIntervalId = null;
     }
+    lastUpNextIdx = -1;
+    render();
     return;
   }
   
