@@ -561,10 +561,12 @@ if (shareBtn) {
         });
         return;
       } catch (err) {
-        // User cancelled or share failed, fall back to clipboard
-        if (err.name !== 'AbortError') {
-          console.error('Share failed:', err);
+        // If user cancelled (AbortError), respect cancellation and do not fall back to clipboard
+        if (err.name === 'AbortError') {
+          return;
         }
+        // For other errors, log and fall back to clipboard
+        console.error('Share failed:', err);
       }
     }
     
