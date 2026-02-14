@@ -1391,33 +1391,31 @@ startUpdateInterval();
 let parkingOpen = false;
 let venueOpen = false;
 
-document.getElementById("parking-toggle").addEventListener("click", () => {
-  parkingOpen = !parkingOpen;
-  const content = document.getElementById("parking-content");
-  const arrow = document.querySelector("#parking-toggle .map-card-arrow");
+function toggleMapCard(cardType) {
+  const isParking = cardType === "parking";
+  const stateVar = isParking ? "parkingOpen" : "venueOpen";
+  const newState = isParking ? !parkingOpen : !venueOpen;
   
-  if (parkingOpen) {
+  if (isParking) {
+    parkingOpen = newState;
+  } else {
+    venueOpen = newState;
+  }
+  
+  const content = document.getElementById(`${cardType}-content`);
+  const arrow = document.querySelector(`#${cardType}-toggle .map-card-arrow`);
+  
+  if (newState) {
     content.classList.add("open");
     arrow.classList.add("open");
   } else {
     content.classList.remove("open");
     arrow.classList.remove("open");
   }
-});
+}
 
-document.getElementById("venue-toggle").addEventListener("click", () => {
-  venueOpen = !venueOpen;
-  const content = document.getElementById("venue-content");
-  const arrow = document.querySelector("#venue-toggle .map-card-arrow");
-  
-  if (venueOpen) {
-    content.classList.add("open");
-    arrow.classList.add("open");
-  } else {
-    content.classList.remove("open");
-    arrow.classList.remove("open");
-  }
-});
+document.getElementById("parking-toggle").addEventListener("click", () => toggleMapCard("parking"));
+document.getElementById("venue-toggle").addEventListener("click", () => toggleMapCard("venue"));
 
 // Full-screen modal for maps
 const modal = document.getElementById("map-modal");
@@ -1470,11 +1468,19 @@ document.getElementById("maps-float-btn").addEventListener("click", () => {
   const mapsSection = document.getElementById("maps-section");
   mapsSection.scrollIntoView({ behavior: "smooth", block: "start" });
   
-  // Auto-open parking map if both are closed
+  // Auto-open parking map if both are closed after scroll completes
   if (!parkingOpen && !venueOpen) {
-    setTimeout(() => {
-      document.getElementById("parking-toggle").click();
-    }, 500);
+    // Use a more reliable approach - check when element is in viewport
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setTimeout(() => {
+          toggleMapCard("parking");
+        }, 300);
+        observer.disconnect();
+      }
+    }, { threshold: 0.5 });
+    
+    observer.observe(mapsSection);
   }
 });
 
