@@ -549,8 +549,6 @@ const shareToast = document.getElementById("share-toast");
 
 if (shareBtn) {
   shareBtn.addEventListener("click", async () => {
-    const url = window.location.href;
-    
     // Prevent re-entrancy if a share is already in progress
     if (shareBtn.disabled) return;
 
