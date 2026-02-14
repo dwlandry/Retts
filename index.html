@@ -602,6 +602,10 @@ border-radius:14px; padding:14px 18px; margin-top:10px; font-size:12px; color:#F
   transform: translateY(-4px) scale(1.05);
   box-shadow: 0 6px 30px rgba(114, 155, 209, 0.6);
 }
+.maps-float-btn.hidden {
+  opacity: 0 !important;
+  pointer-events: none;
+}
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -1570,6 +1574,27 @@ document.getElementById("maps-float-btn").addEventListener("click", () => {
     observer.observe(mapsSection);
   }
 });
+
+// Hide floating maps button when maps section is visible
+const mapsFloatBtn = document.getElementById("maps-float-btn");
+const mapsSection = document.getElementById("maps-section");
+
+const floatBtnObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      // Maps section is visible, hide the button
+      mapsFloatBtn.classList.add("hidden");
+    } else {
+      // Maps section is not visible, show the button
+      mapsFloatBtn.classList.remove("hidden");
+    }
+  });
+}, {
+  // Trigger when any part of the maps section is visible
+  threshold: 0
+});
+
+floatBtnObserver.observe(mapsSection);
 
 </script>
 
