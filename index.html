@@ -463,7 +463,8 @@ function findUpNextEvent() {
       }
     }
     
-    // Only check a few recent events for ongoing status
+    // Only check the last few events for ongoing status (optimization)
+    // Most events won't be "ongoing" so we don't need to check the entire past
     if (i < eventsWithTime.length - 5) break;
   }
   
