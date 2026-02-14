@@ -339,10 +339,225 @@ border-radius:14px; padding:14px 18px; margin-top:10px; font-size:12px; color:#F
 .footer-copy { font-size:11px; color:rgba(255,255,255,.3); margin-top:8px; letter-spacing:1px; }
 .footer-credit { font-family:'Dancing Script',cursive; font-size:14px; color:#729bd1; margin-top:10px; }
 
+/* ── Maps & Directions ── */
+.maps-section {
+  margin: 40px 0 24px;
+  opacity: 0;
+  animation: slideUp .7s ease .5s forwards;
+}
+.maps-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.maps-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 2px;
+  color: #729bd1;
+  margin-bottom: 4px;
+}
+.maps-subtitle {
+  font-size: 13px;
+  color: #8bb4e0;
+  letter-spacing: 0.5px;
+}
+.map-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-bottom: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+.map-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(114, 155, 209, 0.3);
+}
+.map-card-header {
+  padding: 16px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.3s;
+}
+.map-card-header:hover {
+  background: rgba(114, 155, 209, 0.08);
+}
+.map-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.map-card-icon {
+  font-size: 28px;
+}
+.map-card-info {
+  text-align: left;
+}
+.map-card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 1px;
+  color: #fff;
+}
+.map-card-desc {
+  font-size: 12px;
+  color: #8bb4e0;
+  margin-top: 2px;
+}
+.map-card-arrow {
+  font-size: 20px;
+  color: #729bd1;
+  transition: transform 0.3s;
+}
+.map-card-arrow.open {
+  transform: rotate(180deg);
+}
+.map-card-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.4s ease;
+}
+.map-card-content.open {
+  max-height: 1200px;
+  padding: 0 16px 16px;
+}
+.map-image-wrapper {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid rgba(114, 155, 209, 0.2);
+  transition: all 0.3s ease;
+}
+.map-image-wrapper:hover {
+  border-color: #729bd1;
+  box-shadow: 0 8px 30px rgba(114, 155, 209, 0.3);
+  transform: translateY(-2px);
+}
+.map-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.map-tap-hint {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(10, 22, 40, 0.95), transparent);
+  padding: 16px 12px 12px;
+  text-align: center;
+  font-size: 12px;
+  color: #8bb4e0;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* ── Modal for full-screen map view ── */
+.map-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 22, 40, 0.98);
+  z-index: 200;
+  padding: 20px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.map-modal.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.map-modal-close {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(114, 155, 209, 0.2);
+  border: 2px solid #729bd1;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 201;
+  transition: all 0.3s ease;
+}
+.map-modal-close:hover {
+  background: #729bd1;
+  transform: scale(1.1);
+}
+.map-modal-image {
+  max-width: 100%;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+  cursor: zoom-out;
+}
+.map-modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: #729bd1;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* ── Floating Maps Button ── */
+.maps-float-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #729bd1, #5a85c0);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(114, 155, 209, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  cursor: pointer;
+  z-index: 99;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.6s ease 1s forwards;
+  opacity: 0;
+}
+.maps-float-btn:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 6px 30px rgba(114, 155, 209, 0.6);
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media(max-width:500px){
 .solo-grid { grid-template-columns:repeat(2,1fr); }
 .filters { gap:6px; }
 .fbtn { padding:6px 12px; font-size:11px; }
+.maps-float-btn { width: 56px; height: 56px; font-size: 24px; bottom: 20px; right: 20px; }
 }
 </style>
 
@@ -410,6 +625,53 @@ border-radius:14px; padding:14px 18px; margin-top:10px; font-size:12px; color:#F
 
   <div class="card-list" id="schedule"></div>
 
+  <!-- ═══════ MAPS & DIRECTIONS ═══════ -->
+
+  <div class="maps-section" id="maps-section">
+    <div class="maps-header">
+      <h2 class="maps-title">🗺️ Maps &amp; Directions</h2>
+      <p class="maps-subtitle">Tap to view full-screen · Pinch to zoom</p>
+    </div>
+
+    <div class="map-card">
+      <div class="map-card-header" id="parking-toggle">
+        <div class="map-card-left">
+          <span class="map-card-icon">🅿️</span>
+          <div class="map-card-info">
+            <div class="map-card-title">Parking Map</div>
+            <div class="map-card-desc">Where to park at the venue</div>
+          </div>
+        </div>
+        <span class="map-card-arrow">▾</span>
+      </div>
+      <div class="map-card-content" id="parking-content">
+        <div class="map-image-wrapper" data-map="parking">
+          <img src="IMG_0071.jpeg" alt="Parking Map" class="map-image">
+          <div class="map-tap-hint">👆 Tap to view full-screen</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-card">
+      <div class="map-card-header" id="venue-toggle">
+        <div class="map-card-left">
+          <span class="map-card-icon">🏟️</span>
+          <div class="map-card-info">
+            <div class="map-card-title">Venue Map</div>
+            <div class="map-card-desc">Interior room locations</div>
+          </div>
+        </div>
+        <span class="map-card-arrow">▾</span>
+      </div>
+      <div class="map-card-content" id="venue-content">
+        <div class="map-image-wrapper" data-map="venue">
+          <img src="IMG_0072.jpeg" alt="Venue Map" class="map-image">
+          <div class="map-tap-hint">👆 Tap to view full-screen</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════ FOOTER ═══════ -->
 
   <div class="footer">
@@ -418,6 +680,16 @@ border-radius:14px; padding:14px 18px; margin-top:10px; font-size:12px; color:#F
     <p class="footer-copy">LUMBERTON RAIDERETTES · COMP SEASON 2026</p>
     <p class="footer-credit">Built with ❤️ by Raiderette Dad David Landry · Alyson's #1 Fan</p>
   </div>
+</div>
+
+<!-- ── Floating Maps Button ── -->
+<button class="maps-float-btn" id="maps-float-btn" title="View Maps">🗺️</button>
+
+<!-- ── Map Modal ── -->
+<div class="map-modal" id="map-modal">
+  <button class="map-modal-close" id="modal-close">✕</button>
+  <div class="map-modal-title" id="modal-title"></div>
+  <img src="" alt="Map" class="map-modal-image" id="modal-image">
 </div>
 
 <script>
@@ -1112,6 +1384,105 @@ document.addEventListener("visibilitychange", () => {
 
 // Start the update interval
 startUpdateInterval();
+
+// ── Maps & Directions Functionality ──
+
+// Toggle collapsible map cards
+let parkingOpen = false;
+let venueOpen = false;
+
+function toggleMapCard(cardType) {
+  const isParking = cardType === "parking";
+  const stateVar = isParking ? "parkingOpen" : "venueOpen";
+  const newState = isParking ? !parkingOpen : !venueOpen;
+  
+  if (isParking) {
+    parkingOpen = newState;
+  } else {
+    venueOpen = newState;
+  }
+  
+  const content = document.getElementById(`${cardType}-content`);
+  const arrow = document.querySelector(`#${cardType}-toggle .map-card-arrow`);
+  
+  if (newState) {
+    content.classList.add("open");
+    arrow.classList.add("open");
+  } else {
+    content.classList.remove("open");
+    arrow.classList.remove("open");
+  }
+}
+
+document.getElementById("parking-toggle").addEventListener("click", () => toggleMapCard("parking"));
+document.getElementById("venue-toggle").addEventListener("click", () => toggleMapCard("venue"));
+
+// Full-screen modal for maps
+const modal = document.getElementById("map-modal");
+const modalImage = document.getElementById("modal-image");
+const modalTitle = document.getElementById("modal-title");
+const modalClose = document.getElementById("modal-close");
+
+document.querySelectorAll(".map-image-wrapper").forEach(wrapper => {
+  wrapper.addEventListener("click", () => {
+    const mapType = wrapper.dataset.map;
+    const img = wrapper.querySelector("img");
+    
+    modalImage.src = img.src;
+    modalImage.alt = img.alt;
+    
+    if (mapType === "parking") {
+      modalTitle.textContent = "🅿️ Parking Map";
+    } else if (mapType === "venue") {
+      modalTitle.textContent = "🏟️ Venue Map";
+    }
+    
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden";
+  });
+});
+
+// Close modal
+function closeModal() {
+  modal.classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+modalClose.addEventListener("click", closeModal);
+modalImage.addEventListener("click", closeModal);
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) {
+    closeModal();
+  }
+});
+
+// Close modal on Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modal.classList.contains("active")) {
+    closeModal();
+  }
+});
+
+// Floating Maps button - scroll to maps section
+document.getElementById("maps-float-btn").addEventListener("click", () => {
+  const mapsSection = document.getElementById("maps-section");
+  mapsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  
+  // Auto-open parking map if both are closed after scroll completes
+  if (!parkingOpen && !venueOpen) {
+    // Use a more reliable approach - check when element is in viewport
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setTimeout(() => {
+          toggleMapCard("parking");
+        }, 300);
+        observer.disconnect();
+      }
+    }, { threshold: 0.5 });
+    
+    observer.observe(mapsSection);
+  }
+});
 
 </script>
 
