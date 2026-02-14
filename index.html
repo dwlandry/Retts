@@ -462,10 +462,6 @@ function findUpNextEvent() {
         return { ...event, isNow: true };
       }
     }
-    
-    // Only check the last few events for ongoing status (optimization)
-    // Most events won't be "ongoing" so we don't need to check the entire past
-    if (i < eventsWithTime.length - 5) break;
   }
   
   // Check if we're during an event (for ranges)
