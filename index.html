@@ -770,10 +770,17 @@ function updateUpNext() {
 
 function startUpdateInterval() {
   if (updateIntervalId === null) {
-    // Run immediately on start
+    // Align lastUpNextIdx with the current up-next event to avoid an extra full render
+    const initialUpNextEvent = findUpNextEvent();
+    lastUpNextIdx = initialUpNextEvent ? initialUpNextEvent.idx : -1;
+
+    // Run immediately on start (will now usually do a lightweight update only)
     updateUpNext();
-    // Then run every 30 seconds
-    updateIntervalId = setInterval(updateUpNext, 30000);
+
+    // Then run every 30 seconds while there are upcoming events
+    if (lastUpNextIdx !== -1) {
+      updateIntervalId = setInterval(updateUpNext, 30000);
+    }
   }
 }
 
