@@ -728,10 +728,68 @@ function render() {
 updateProgress();
 render();
 
-// ── Auto-update UP NEXT every 30 seconds ──
-setInterval(() => {
-  render();
-}, 30000);
+// ── Auto-update UP NEXT with targeted updates and Page Visibility API ──
+let updateIntervalId = null;
+let lastUpNextIdx = -1;
+
+function updateUpNext() {
+  const upNextEvent = findUpNextEvent();
+  const newUpNextIdx = upNextEvent ? upNextEvent.idx : -1;
+  
+  // If all events are past, stop the interval
+  if (newUpNextIdx === -1) {
+    if (updateIntervalId !== null) {
+      clearInterval(updateIntervalId);
+      updateIntervalId = null;
+    }
+    return;
+  }
+  
+  // If the up-next event has changed, do a full render
+  if (newUpNextIdx !== lastUpNextIdx) {
+    lastUpNextIdx = newUpNextIdx;
+    render();
+  } else {
+    // Otherwise, just update the time-until text on the current UP NEXT card
+    const card = document.querySelector(`.card.up-next`);
+    if (card && upNextEvent && upNextEvent.parsedTime) {
+      const timeUntilEl = card.querySelector('.time-until');
+      if (timeUntilEl && !upNextEvent.isNow) {
+        const timeUntilText = formatTimeUntil(upNextEvent.parsedTime);
+        timeUntilEl.textContent = timeUntilText;
+      }
+    }
+  }
+}
+
+function startUpdateInterval() {
+  if (updateIntervalId === null) {
+    // Run immediately on start
+    updateUpNext();
+    // Then run every 30 seconds
+    updateIntervalId = setInterval(updateUpNext, 30000);
+  }
+}
+
+function stopUpdateInterval() {
+  if (updateIntervalId !== null) {
+    clearInterval(updateIntervalId);
+    updateIntervalId = null;
+  }
+}
+
+// Use Page Visibility API to pause/resume updates
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopUpdateInterval();
+  } else {
+    startUpdateInterval();
+  }
+});
+
+// Start the update interval
+startUpdateInterval();
+
 </script>
 
 </body>
