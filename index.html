@@ -361,6 +361,66 @@ border-radius:14px; padding:14px 18px; margin-top:10px; font-size:12px; color:#F
   color: #8bb4e0;
   letter-spacing: 0.5px;
 }
+.venue-address-card {
+  background: rgba(114, 155, 209, 0.12);
+  border-radius: 16px;
+  border: 2px solid rgba(114, 155, 209, 0.3);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-align: center;
+}
+.venue-address-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.venue-address-icon {
+  font-size: 28px;
+}
+.venue-address-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 1.5px;
+  color: #fff;
+}
+.venue-address-text {
+  font-size: 16px;
+  color: #fff;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+.get-directions-btn {
+  display: inline-block;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #729bd1, #5a85c0);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(114, 155, 209, 0.4);
+  min-width: 240px;
+}
+.get-directions-btn:hover {
+  background: linear-gradient(135deg, #5a85c0, #729bd1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(114, 155, 209, 0.6);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.get-directions-btn:active {
+  transform: translateY(0);
+}
 .map-card {
   background: rgba(255, 255, 255, 0.04);
   border-radius: 16px;
@@ -558,6 +618,14 @@ border-radius:14px; padding:14px 18px; margin-top:10px; font-size:12px; color:#F
 .filters { gap:6px; }
 .fbtn { padding:6px 12px; font-size:11px; }
 .maps-float-btn { width: 56px; height: 56px; font-size: 24px; bottom: 20px; right: 20px; }
+.venue-address-card { padding: 16px 20px; }
+.venue-address-title { font-size: 20px; }
+.venue-address-text { font-size: 14px; }
+.get-directions-btn { 
+  padding: 12px 24px; 
+  font-size: 14px; 
+  min-width: 200px;
+}
 }
 </style>
 
@@ -631,6 +699,25 @@ border-radius:14px; padding:14px 18px; margin-top:10px; font-size:12px; color:#F
     <div class="maps-header">
       <h2 class="maps-title">🗺️ Maps &amp; Directions</h2>
       <p class="maps-subtitle">Tap to view full-screen · Pinch to zoom</p>
+    </div>
+
+    <!-- Venue Address & Get Directions -->
+    <div class="venue-address-card">
+      <div class="venue-address-header">
+        <span class="venue-address-icon">📍</span>
+        <h3 class="venue-address-title">Venue Location</h3>
+      </div>
+      <p class="venue-address-text">
+        7425 Westgreen Blvd<br>
+        Cypress, TX 77433
+      </p>
+      <a href="https://www.google.com/maps/dir/?api=1&destination=7425+Westgreen+Blvd+Cypress+TX+77433" 
+         class="get-directions-btn" 
+         target="_blank" 
+         rel="noopener noreferrer"
+         aria-label="Get directions to venue location (opens in new tab)">
+        🧭 Get Directions
+      </a>
     </div>
 
     <div class="map-card">
