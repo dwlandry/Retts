@@ -1579,22 +1579,24 @@ document.getElementById("maps-float-btn").addEventListener("click", () => {
 const mapsFloatBtn = document.getElementById("maps-float-btn");
 const mapsSection = document.getElementById("maps-section");
 
-const floatBtnObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      // Maps section is visible, hide the button
-      mapsFloatBtn.classList.add("hidden");
-    } else {
-      // Maps section is not visible, show the button
-      mapsFloatBtn.classList.remove("hidden");
-    }
+if (mapsFloatBtn && mapsSection) {
+  const floatBtnObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Maps section is visible, hide the button
+        mapsFloatBtn.classList.add("hidden");
+      } else {
+        // Maps section is not visible, show the button
+        mapsFloatBtn.classList.remove("hidden");
+      }
+    });
+  }, {
+    // Trigger when any part of the maps section is visible
+    threshold: 0
   });
-}, {
-  // Trigger when any part of the maps section is visible
-  threshold: 0
-});
 
-floatBtnObserver.observe(mapsSection);
+  floatBtnObserver.observe(mapsSection);
+}
 
 </script>
 
