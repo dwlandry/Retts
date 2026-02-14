@@ -486,6 +486,9 @@ const QUOTES = [
   "\"Together we shine brighter!\" 💫"
 ];
 
+const QUOTE_ROTATION_INTERVAL_MS = 18000; // 18 seconds
+const FADE_DURATION_MS = 500; // Must match CSS transition duration
+
 let currentQuoteIndex = Math.floor(Math.random() * QUOTES.length);
 const quoteText = document.getElementById("quote-text");
 
@@ -508,11 +511,11 @@ function rotateQuote() {
     
     // Fade in
     quoteText.classList.remove("fading");
-  }, 500);
+  }, FADE_DURATION_MS);
 }
 
 // Start quote rotation
-setInterval(rotateQuote, 18000);
+setInterval(rotateQuote, QUOTE_ROTATION_INTERVAL_MS);
 
 // ── Share Button ──
 const shareBtn = document.getElementById("share-btn");
