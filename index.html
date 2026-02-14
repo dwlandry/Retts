@@ -131,6 +131,36 @@ opacity:0; animation:slideIn .5s ease var(--d) forwards;
 .card.checked { opacity:.45; }
 .card.checked .dance-name { text-decoration:line-through; }
 
+/* ── UP NEXT indicator ── */
+.card.up-next {
+  background:rgba(114,155,209,.15);
+  border:2px solid #729bd1;
+  box-shadow:0 0 20px rgba(114,155,209,.4), 0 8px 30px rgba(0,0,0,.3);
+  animation:slideIn .5s ease var(--d) forwards, pulseGlow 2s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow:0 0 20px rgba(114,155,209,.4), 0 8px 30px rgba(0,0,0,.3); }
+  50% { box-shadow:0 0 30px rgba(114,155,209,.6), 0 8px 30px rgba(0,0,0,.3); }
+}
+.up-next-badge {
+  display:inline-block;
+  padding:4px 10px;
+  background:linear-gradient(135deg,#729bd1,#5a85c0);
+  border-radius:8px;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:#fff;
+  margin-left:6px;
+}
+.time-until {
+  font-size:11px;
+  color:#729bd1;
+  font-weight:600;
+  margin-left:8px;
+}
+
 .card-inner { display:flex; align-items:flex-start; gap:14px; }
 .card-icon { font-size:28px; line-height:1; margin-top:2px; flex-shrink:0; transition:filter .3s; }
 .card.checked .card-icon { filter:grayscale(1); }
@@ -274,7 +304,7 @@ const SCHEDULE = [
   { time:"8:39 AM",  loc:"Auxiliary Gym",            dance:"Officer Contemporary", type:"team",   icon:"💃" },
   { time:"9:40 AM",  loc:"Main Gym",                 dance:"Beetlejuice Novelty",  type:"team",   icon:"🪲" },
   { time:"10:24 AM", loc:"Auxiliary Gym",             dance:"Officer Pom",          type:"team",   icon:"📣" },
-  { time:"10:35–11:30", loc:"Chick-fil-A / Jersey Mike's", dance:"Team Lunch",     type:"break",  icon:"🍗" },
+  { time:"10:35–11:30 AM", loc:"Off-site", dance:"Team Lunch",     type:"break",  icon:"🍗" },
   { time:"12:15 PM", loc:"Main Gym",                 dance:"All That Jazz – Open", type:"team",   icon:"🎷" },
   { time:"12:45 PM", loc:"Auditorium", dance:"Alyson",      type:"solo", icon:"⭐" },
   { time:"12:49 PM", loc:"Auditorium", dance:"Hailey",      type:"solo", icon:"⭐" },
@@ -292,10 +322,10 @@ const SCHEDULE = [
   { time:"1:37 PM",  loc:"Auditorium", dance:"Addison K.",  type:"solo", icon:"⭐" },
   { time:"3:10 PM",  loc:"Main Gym",       dance:"Backstreet",          type:"team",   icon:"🕺" },
   { time:"4:31 PM",  loc:"Auxiliary Gym",   dance:"Officer Jazz",        type:"team",   icon:"🎶" },
-  { time:"4:45–5:00",loc:"Dressing Rooms",  dance:"Vacate Rooms",        type:"info",   icon:"🚪" },
-  { time:"5:00–8:30",loc:"Dinner Break",    dance:"Dinner Break",        type:"break",  icon:"🍔" },
+  { time:"4:45–5:00 PM",loc:"Dressing Rooms",  dance:"Vacate Rooms",        type:"info",   icon:"🚪" },
+  { time:"5:00–8:30 PM",loc:"Off-site",    dance:"Dinner Break",        type:"break",  icon:"🍔" },
   { time:"8:30 PM",  loc:"TBD",             dance:"Directors Meeting",   type:"info",   icon:"📋" },
-  { time:"8:50–9:45",loc:"Awards",           dance:"Awards Ceremony",     type:"awards", icon:"🏆" },
+  { time:"8:50–9:45 PM",loc:"Main Gym",           dance:"Awards Ceremony",     type:"awards", icon:"🏆" },
 ];
 
 const TOTAL = SCHEDULE.length;
@@ -346,6 +376,114 @@ const typeColor = t => ({
 }[t] || { bg:"rgba(114,155,209,.1)", brd:"#729bd1", acc:"#729bd1" });
 
 const typeLabel = t => ({ team:"TEAM", solo:"SOLO", break:"BREAK", info:"INFO", awards:"AWARDS" }[t] || "");
+
+// ── Parse time string to today's Date object ──
+function parseScheduleTime(timeStr) {
+  // Handle formats like "8:39 AM", "12:15 PM", "10:35–11:30 AM" (use start time)
+  let timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  
+  if (!timeMatch) {
+    // Try range format: "10:35–11:30 AM"
+    const rangeMatch = timeStr.match(/^(\d{1,2}):(\d{2})–.+?(AM|PM)/i);
+    if (rangeMatch) {
+      timeMatch = rangeMatch;
+    }
+  }
+  
+  if (!timeMatch) return null;
+  
+  let [, hours, minutes, period] = timeMatch;
+  hours = parseInt(hours);
+  minutes = parseInt(minutes);
+  
+  // Convert to 24-hour format
+  if (period.toUpperCase() === 'PM' && hours !== 12) {
+    hours += 12;
+  } else if (period.toUpperCase() === 'AM' && hours === 12) {
+    hours = 0;
+  }
+  
+  const now = new Date();
+  const eventTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+  
+  return eventTime;
+}
+
+// ── Find current or next event ──
+function findUpNextEvent() {
+  const now = new Date();
+  
+  // Parse all times
+  const eventsWithTime = SCHEDULE.map((item, idx) => ({
+    ...item,
+    idx,
+    parsedTime: parseScheduleTime(item.time)
+  })).filter(e => e.parsedTime !== null);
+  
+  // Find first event that hasn't started yet
+  const upcomingEvents = eventsWithTime.filter(e => e.parsedTime > now);
+  
+  if (upcomingEvents.length > 0) {
+    // Return the next upcoming event
+    return upcomingEvents[0];
+  }
+  
+  // Check if we're during an event (for ranges)
+  const ongoingEvents = eventsWithTime.filter(e => {
+    const timeStr = e.time;
+    const rangeMatch = timeStr.match(/^(\d{1,2}):(\d{2})–(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (rangeMatch) {
+      const [, startHours, startMinutes, endHours, endMinutes, period] = rangeMatch;
+      let startH = parseInt(startHours);
+      let endH = parseInt(endHours);
+      const startM = parseInt(startMinutes);
+      const endM = parseInt(endMinutes);
+      
+      // Convert to 24-hour
+      if (period.toUpperCase() === 'PM') {
+        if (startH !== 12) startH += 12;
+        if (endH !== 12) endH += 12;
+      } else if (period.toUpperCase() === 'AM') {
+        if (startH === 12) startH = 0;
+        if (endH === 12) endH = 0;
+      }
+      
+      const startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM, 0);
+      const endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM, 0);
+      
+      return now >= startTime && now < endTime;
+    }
+    return false;
+  });
+  
+  if (ongoingEvents.length > 0) {
+    return ongoingEvents[0];
+  }
+  
+  // All events are in the past - return null
+  return null;
+}
+
+// ── Format time until event ──
+function formatTimeUntil(eventTime) {
+  const now = new Date();
+  const diff = eventTime - now;
+  
+  if (diff < 0) return "now";
+  
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  
+  if (hours > 0) {
+    if (remainingMinutes > 0) {
+      return `in ${hours} hr${hours > 1 ? 's' : ''} ${remainingMinutes} min`;
+    }
+    return `in ${hours} hr${hours > 1 ? 's' : ''}`;
+  }
+  
+  return `in ${minutes} min`;
+}
 
 function updateProgress() {
   const n = Object.values(checked).filter(Boolean).length;
@@ -424,6 +562,8 @@ document.querySelectorAll(".fbtn").forEach(btn => {
 // ── Notes HTML ──
 function notesFor(dance) {
   if (dance === "Vacate Rooms") return `<div class="notes-box"><p>⚠️ Team released after Director inspects the room. Take ALL belongings &amp; chairs out of dressing rooms to vehicles.</p></div>`;
+  if (dance === "Team Lunch") return `<div class="notes-box"><p>🍽️ Chick-fil-A / Jersey Mike's — Be back and ready by 12:00 PM</p></div>`;
+  if (dance === "Dinner Break") return `<div class="notes-box"><p>🍽️ Be back to meet Directors by 8:30 PM</p></div>`;
   if (dance === "Directors Meeting") return `<div class="notes-box"><p>⚠️ Meet Directors at 8:30 — Do <strong>NOT</strong> be late!</p></div>`;
   if (dance === "Awards Ceremony") return `<div class="notes-box gold"><p>🏆 Wear your team pant set! Competition can run ahead or behind schedule — please be flexible.</p><p>💫 Rettes will be dismissed after Awards and Team Pictures.</p></div>`;
   return "";
@@ -445,6 +585,10 @@ function render() {
   const solos = visible.filter(i => i.type === "solo");
   const hasRenderedSolos = { done: false };
   let cardIdx = 0;
+  
+  // Find up next event
+  const upNextEvent = findUpNextEvent();
+  const upNextIdx = upNextEvent ? upNextEvent.idx : -1;
 
   visible.forEach(item => {
     // ── Solo group ──
@@ -470,9 +614,9 @@ function render() {
           <span class="solo-arrow ${solosOpen?'open':''}">▾</span>
         </div>
         <div class="solo-grid ${solosOpen?'open':''}" id="solo-grid">
-          ${solos.map(s => `
+          ${solos.map((s, soloIdx) => `
             <div class="solo-chip ${checked[s.idx]?'checked-chip':''}" data-sidx="${s.idx}">
-              <div class="solo-name">${s.dance}</div>
+              <div class="solo-name">#${soloIdx + 1} ${s.dance}</div>
               <div class="solo-time">${s.time}</div>
             </div>
           `).join("")}
@@ -498,12 +642,20 @@ function render() {
     // ── Regular card ──
     const c = typeColor(item.type);
     const isChecked = !!checked[item.idx];
+    const isUpNext = item.idx === upNextIdx;
     const card = document.createElement("div");
-    card.className = "card" + (isChecked ? " checked" : "");
+    card.className = "card" + (isChecked ? " checked" : "") + (isUpNext ? " up-next" : "");
     card.dataset.idx = item.idx;
     card.style.setProperty("--accent", c.brd);
     card.style.setProperty("--d", (.35 + cardIdx * .06) + "s");
     cardIdx++;
+    
+    // Build time until text
+    let timeUntilHTML = "";
+    if (isUpNext && upNextEvent && upNextEvent.parsedTime) {
+      const timeUntilText = formatTimeUntil(upNextEvent.parsedTime);
+      timeUntilHTML = `<span class="time-until">${timeUntilText}</span>`;
+    }
 
     card.innerHTML = `
       <div class="card-inner">
@@ -512,6 +664,8 @@ function render() {
           <div class="card-top">
             <span class="dance-name">${item.dance}</span>
             <span class="type-tag" style="background:${c.bg};color:${c.acc};border:1px solid ${c.brd}40">${typeLabel(item.type)}</span>
+            ${isUpNext ? '<span class="up-next-badge">⏳ UP NEXT</span>' : ''}
+            ${timeUntilHTML}
           </div>
           <div class="card-meta">
             <span>🕐 ${item.time}</span>
@@ -531,6 +685,11 @@ function render() {
 // ── Init ──
 updateProgress();
 render();
+
+// ── Auto-update UP NEXT every 30 seconds ──
+setInterval(() => {
+  render();
+}, 30000);
 </script>
 
 </body>
